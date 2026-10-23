@@ -20,11 +20,19 @@ def get_tasks():
 
 @app.post("/tasks")
 def create_task():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({"error": "Request body must be a JSON object"}), 400
+
+    title = data.get("title")
+
+    if not isinstance(title, str) or not title.strip():
+        return jsonify({"error": "A non-empty title is required"}), 400
 
     task = {
         "id": max((item["id"] for item in tasks), default=0) + 1,
-        "title": data.get("title"),
+        "title": title.strip(),
         "completed": False,
     }
 
