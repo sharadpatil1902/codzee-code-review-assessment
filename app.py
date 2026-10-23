@@ -15,8 +15,27 @@ def health():
 
 @app.get("/tasks")
 def get_tasks():
-    return jsonify(tasks)
+    try:
+        page = int(request.args.get("page", 1))
+        limit = int(request.args.get("limit", 10))
+    except (TypeError, ValueError):
+        return jsonify({"error": "page and limit must be integers"}), 400
 
+    if page < 1 or limit < 1 or limit > 100:
+        return jsonify({
+            "error": "page must be >= 1 and limit must be between 1 and 100"
+        }), 400
+
+    total = len(tasks)
+    start = (page - 1) * limit
+
+    return jsonify({
+        "items": tasks[start:start + limit],
+        "page": page,
+        "limit": limit,
+        "total": total,
+        "pages": (total + limit - 1) // limit,
+    })
 
 @app.post("/tasks")
 def create_task():
